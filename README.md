@@ -1,1 +1,1 @@
-# A web scraper for KupujemProdaje.com
+# A web scraper for KupujemProdajem.com
