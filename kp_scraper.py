@@ -86,5 +86,5 @@ print(f'Pages scraped: {pages_scraped}')
 print(f'Listings scraped: {output.count("uuid")}')
 print(f'Time taken: {end_time - start_time}')
 
-with open("output.txt", "w") as file:
+with open(f'output/output-{keyword}-{datetime.datetime.now()}.txt', "w") as file:
     file.write(output)
