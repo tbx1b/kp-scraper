@@ -6,8 +6,10 @@ from bs4 import BeautifulSoup
 import uuid
 import random
 import re
+import datetime
+import sys
 
-def scrape_product_info_selenium(url):
+def scrape_shallow_product_info(search_keyword, page_number=1):
     chrome_driver_path = ChromeDriverManager().install()
 
     chrome_options = webdriver.ChromeOptions()
@@ -15,6 +17,7 @@ def scrape_product_info_selenium(url):
 
     driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
 
+    url = f'https://www.kupujemprodajem.com/pretraga?keywords={search_keyword}&page={page_number}'
     driver.get(url)
 
     page_source = driver.page_source
@@ -28,28 +31,30 @@ def scrape_product_info_selenium(url):
     scraped_data = []
 
     for ad_holder in ad_holders:
-
-        # Get the actual data from the webpage
         name = ad_holder.find('div', class_=re.compile(r'AdItem_name__\w+'))
         description = ad_holder.find('p', class_='')
         price = ad_holder.find('div', class_=re.compile(r'AdItem_price__\w+'))
         watch_count = ad_holder.find('span', class_=re.compile(r'AdItem_count__\w+'))
+        favorite_count = ad_holder.find('span', class_=re.compile(r'AdItem_count__\w+'))
         location = ad_holder.find('div', class_=re.compile(r'AdItem_originAndPromoLocation__\w+')).find('p')
 
-        # So each listing can have our own unique identifier
         rd = random.Random()
         seed = name.text.strip()
-
         rd.seed(seed)
+
+        if "din" in price.text.strip():
+            currency = "rsd"
+        else:
+            currency = "eur"
 
         item_data = {
             "uuid": str(uuid.UUID(int=rd.getrandbits(128))),
             "gold": "false",
             "name": name.text.strip() if name else 'N/A',
             "description": description.text.strip() if description else 'N/A',
-            "price": price.text.strip() if price else 'N/A',
+            "currency": currency,
+            "price": price.text.strip().replace("din", "").replace(" ", "").replace(".", "").replace("\u20ac", "") if price else 'N/A',
             "watch_count": watch_count.text.strip() if watch_count else 'N/A',
-            # "favorite_count": favorite_count.text.strip() if favorite_count else 'N/A',
             "location": location.text.strip() if location else 'N/A',
         }
 
@@ -57,7 +62,29 @@ def scrape_product_info_selenium(url):
 
     json_data = json.dumps(scraped_data, indent=2)
 
-    print(json_data)
+    return json_data
 
-kp = 'https://www.kupujemprodajem.com/pretraga?keywords=zvucnjak&page=1'
-scrape_product_info_selenium(kp)
+keyword = "mikrofon"
+pages = 1
+
+print(f"Scraping {pages} pages under the keyword '{keyword}'")
+
+output = ""
+
+pages_scraped = 0
+
+start_time = datetime.datetime.now()
+for i in range(0, pages):
+    output = output + scrape_shallow_product_info(keyword, i)
+    pages_scraped = pages_scraped + 1
+end_time = datetime.datetime.now()
+
+print(output)
+
+print("--------------------------------")
+print(f'Pages scraped: {pages_scraped}')
+print(f'Listings scraped: {output.count("uuid")}')
+print(f'Time taken: {end_time - start_time}')
+
+with open("output.txt", "w") as file:
+    file.write(output)
