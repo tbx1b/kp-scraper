@@ -64,8 +64,8 @@ def scrape_shallow_product_info(search_keyword, page_number=1):
 
     return json_data
 
-keyword = "mikrofon"
-pages = 1
+keyword = sys.argv[2] if len(sys.argv) > 1 else "mikrofon"
+pages = int(sys.argv[4]) if len(sys.argv) > 2 else 1
 
 print(f"Scraping {pages} pages under the keyword '{keyword}'")
 
