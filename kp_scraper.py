@@ -1,7 +1,6 @@
 import json
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service as ChromeService
-from selenium.webdriver.common.by import By
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import uuid
@@ -13,7 +12,7 @@ def scrape_product_info_selenium(url):
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
-    
+
     driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
 
     driver.get(url)
