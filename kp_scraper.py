@@ -8,6 +8,7 @@ import random
 import re
 import datetime
 import sys
+from progress.bar import Bar
 
 def scrape_shallow_product_info(search_keyword, page_number=1):
     chrome_driver_path = ChromeDriverManager().install()
@@ -35,8 +36,10 @@ def scrape_shallow_product_info(search_keyword, page_number=1):
         description = ad_holder.find('p', class_='')
         price = ad_holder.find('div', class_=re.compile(r'AdItem_price__\w+'))
         watch_count = ad_holder.find('span', class_=re.compile(r'AdItem_count__\w+'))
-        favorite_count = ad_holder.find('span', class_=re.compile(r'AdItem_count__\w+'))
         location = ad_holder.find('div', class_=re.compile(r'AdItem_originAndPromoLocation__\w+')).find('p')
+        created_at_match = ad_holder.find('div', class_=re.compile(r'AdItem_postedStatus__\w+')).find_all('p')
+        created_at = created_at_match[1].text.strip() if len(created_at_match) > 1 else 'N/A'
+        url = ad_holder.find('a', class_=re.compile(r'Link_link__\w+')).get('href')
 
         rd = random.Random()
         seed = name.text.strip()
@@ -49,13 +52,14 @@ def scrape_shallow_product_info(search_keyword, page_number=1):
 
         item_data = {
             "uuid": str(uuid.UUID(int=rd.getrandbits(128))),
-            "gold": "false",
             "name": name.text.strip() if name else 'N/A',
             "description": description.text.strip() if description else 'N/A',
             "currency": currency,
             "price": price.text.strip().replace("din", "").replace(" ", "").replace(".", "").replace("\u20ac", "") if price else 'N/A',
             "watch_count": watch_count.text.strip() if watch_count else 'N/A',
             "location": location.text.strip() if location else 'N/A',
+            "created_at": created_at,
+            "url": f"https://www.kupujemprodajem.com{url}",
         }
 
         scraped_data.append(item_data)
@@ -73,10 +77,13 @@ output = ""
 
 pages_scraped = 0
 
+bar = Bar('Scraping', max=pages)
+
 start_time = datetime.datetime.now()
 for i in range(0, pages):
     output = output + scrape_shallow_product_info(keyword, i)
     pages_scraped = pages_scraped + 1
+    bar.next()
 end_time = datetime.datetime.now()
 
 print(output)
