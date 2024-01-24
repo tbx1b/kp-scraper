@@ -8,7 +8,7 @@ import random
 import re
 import datetime
 import sys
-from progress.bar import Bar
+from tqdm import tqdm
 from fake_useragent import UserAgent
 import requests
 
@@ -91,13 +91,15 @@ output = ""
 
 pages_scraped = 0
 
-bar = Bar('Scraping', max=pages)
+bar = tqdm(total=pages, desc='Scraping')
 
 start_time = datetime.datetime.now()
 for i in range(0, pages):
     output = output + scrape_shallow_product_info(keyword, i)
     pages_scraped = pages_scraped + 1
-    bar.next()
+    bar.update(1)
+
+bar.close()
 
 driver.quit()
 
