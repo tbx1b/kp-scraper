@@ -21,25 +21,23 @@ def get_random_proxy():
     proxies = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
     return random.choice(proxies)
 
+chrome_driver_path = ChromeDriverManager().install()
+
+chrome_options = webdriver.ChromeOptions()
+chrome_options.add_argument("--headless")
+chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
+
+# proxy = get_random_proxy()
+# chrome_options.add_argument(f"--proxy-server={proxy}")
+
+driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
+
 def scrape_shallow_product_info(search_keyword, page_number=1):
-
-    chrome_driver_path = ChromeDriverManager().install()
-
-    chrome_options = webdriver.ChromeOptions()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
-    
-    # proxy = get_random_proxy()
-    # chrome_options.add_argument(f"--proxy-server={proxy}")
-
-    driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
-
     url = f'https://www.kupujemprodajem.com/pretraga?keywords={search_keyword}&page={page_number}'
+
     driver.get(url)
 
     page_source = driver.page_source
-
-    driver.quit()
 
     soup = BeautifulSoup(page_source, 'html.parser')
 
@@ -75,7 +73,7 @@ def scrape_shallow_product_info(search_keyword, page_number=1):
             "watch_count": watch_count.text.strip() if watch_count else 'N/A',
             "location": location.text.strip() if location else 'N/A',
             "created_at": created_at,
-            "url": f"https://www.kupujemprodajem.com{url}",
+            "url": f"https://www.kupujemprodajem.com{url.split('?')[0]}",
         }
 
         scraped_data.append(item_data)
@@ -100,6 +98,9 @@ for i in range(0, pages):
     output = output + scrape_shallow_product_info(keyword, i)
     pages_scraped = pages_scraped + 1
     bar.next()
+
+driver.quit()
+
 end_time = datetime.datetime.now()
 
 print(output)
