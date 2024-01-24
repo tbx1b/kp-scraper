@@ -21,8 +21,10 @@ def get_random_proxy():
     proxies = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
     return random.choice(proxies)
 
+print("Getting web driver...")
 chrome_driver_path = ChromeDriverManager().install()
 
+print("Setting options...")
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument("--headless")
 chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
@@ -30,6 +32,7 @@ chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
 # proxy = get_random_proxy()
 # chrome_options.add_argument(f"--proxy-server={proxy}")
 
+print("Initializing web driver...")
 driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
 
 def scrape_shallow_product_info(search_keyword, page_number=1):
@@ -105,11 +108,12 @@ driver.quit()
 
 end_time = datetime.datetime.now()
 
+listings_per_second = output.count("uuid") / (end_time - start_time).total_seconds()
+
 print(output)
 
-print("--------------------------------")
 print(f'Pages scraped: {pages_scraped}')
-print(f'Listings scraped: {output.count("uuid")}')
+print(f'Listings scraped: {output.count("uuid")} ({listings_per_second:.2f} per second)')
 print(f'Time taken: {end_time - start_time}')
 
 with open(f'output/output-{keyword}-{datetime.datetime.now()}.txt', "w") as file:
