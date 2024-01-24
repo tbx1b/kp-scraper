@@ -81,16 +81,16 @@ def scrape_shallow_product_info(search_keyword, page_number=1):
 
         scraped_data.append(item_data)
 
-    json_data = json.dumps(scraped_data, indent=2)
+    # json_data = json.dumps(scraped_data, indent=2)
 
-    return json_data
+    return scraped_data
 
 keyword = sys.argv[2] if len(sys.argv) > 1 else "mikrofon"
 pages = int(sys.argv[4]) if len(sys.argv) > 2 else 1
 
 print(f"Scraping {pages} pages under the keyword '{keyword}'")
 
-output = ""
+output = []
 
 pages_scraped = 0
 
@@ -98,13 +98,22 @@ bar = tqdm(total=pages, desc='Scraping')
 
 start_time = datetime.datetime.now()
 for i in range(0, pages):
-    output = output + scrape_shallow_product_info(keyword, i)
+    output.append(scrape_shallow_product_info(keyword, i))
     pages_scraped = pages_scraped + 1
     bar.update(1)
 
 bar.close()
 
 driver.quit()
+
+metadata = {
+    "keyword": keyword,
+    "pages": pages,
+    "total_listings": sum(len(sublist) for sublist in output),
+    "scraped_data": [item for sublist in output for item in sublist]
+}
+
+output = json.dumps(metadata, indent=2)
 
 end_time = datetime.datetime.now()
 
