@@ -17,12 +17,11 @@ def get_random_user_agent():
     return ua.random
 
 def get_random_proxy():
-    response = requests.get("https://www.free-proxy-list.net/")
+    response = requests.get("http://pubproxy.com/api/proxy")
     proxies = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
     return random.choice(proxies)
 
 def scrape_shallow_product_info(search_keyword, page_number=1):
-    #proxy = get_random_proxy()
 
     chrome_driver_path = ChromeDriverManager().install()
 
@@ -30,7 +29,8 @@ def scrape_shallow_product_info(search_keyword, page_number=1):
     chrome_options.add_argument("--headless")
     chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
     
-    #chrome_options.add_argument(f"--proxy-server={proxy}")
+    # proxy = get_random_proxy()
+    # chrome_options.add_argument(f"--proxy-server={proxy}")
 
     driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
 
