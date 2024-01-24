@@ -1,14 +1,7 @@
-import json
-from selenium import webdriver
-from selenium.webdriver.chrome.service import Service as ChromeService
-from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import uuid
 import random
 import re
-import datetime
-import sys
-from tqdm import tqdm
 from fake_useragent import UserAgent
 import requests
 
@@ -21,21 +14,7 @@ def get_random_proxy():
     proxies = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
     return random.choice(proxies)
 
-print("Getting web driver...")
-chrome_driver_path = ChromeDriverManager().install()
-
-print("Setting options...")
-chrome_options = webdriver.ChromeOptions()
-chrome_options.add_argument("--headless")
-chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
-
-# proxy = get_random_proxy()
-# chrome_options.add_argument(f"--proxy-server={proxy}")
-
-print("Initializing web driver...")
-driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
-
-def scrape_shallow_product_info(search_keyword, page_number=1):
+def scrape_shallow_product_info(driver, search_keyword, page_number=1):
     url = f'https://www.kupujemprodajem.com/pretraga?keywords={search_keyword}&page={page_number}'
 
     driver.get(url)
@@ -81,49 +60,5 @@ def scrape_shallow_product_info(search_keyword, page_number=1):
 
         scraped_data.append(item_data)
 
-    # json_data = json.dumps(scraped_data, indent=2)
-
     return scraped_data
 
-keyword = sys.argv[2] if len(sys.argv) > 1 else "mikrofon"
-pages = int(sys.argv[4]) if len(sys.argv) > 2 else 1
-
-print(f"Scraping {pages} pages under the keyword '{keyword}'")
-
-output = []
-
-pages_scraped = 0
-
-bar = tqdm(total=pages, desc='Scraping')
-
-start_time = datetime.datetime.now()
-for i in range(0, pages):
-    output.append(scrape_shallow_product_info(keyword, i))
-    pages_scraped = pages_scraped + 1
-    bar.update(1)
-
-bar.close()
-
-driver.quit()
-
-metadata = {
-    "keyword": keyword,
-    "pages": pages,
-    "total_listings": sum(len(sublist) for sublist in output),
-    "scraped_data": [item for sublist in output for item in sublist]
-}
-
-output = json.dumps(metadata, indent=2)
-
-end_time = datetime.datetime.now()
-
-listings_per_second = output.count("uuid") / (end_time - start_time).total_seconds()
-
-print(output)
-
-print(f'Pages scraped: {pages_scraped}')
-print(f'Listings scraped: {output.count("uuid")} ({listings_per_second:.2f} per second)')
-print(f'Time taken: {end_time - start_time}')
-
-with open(f'output/output-{keyword}-{datetime.datetime.now()}.txt', "w") as file:
-    file.write(output)
