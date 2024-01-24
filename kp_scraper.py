@@ -9,12 +9,28 @@ import re
 import datetime
 import sys
 from progress.bar import Bar
+from fake_useragent import UserAgent
+import requests
+
+def get_random_user_agent():
+    ua = UserAgent()
+    return ua.random
+
+def get_random_proxy():
+    response = requests.get("https://www.free-proxy-list.net/")
+    proxies = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
+    return random.choice(proxies)
 
 def scrape_shallow_product_info(search_keyword, page_number=1):
+    #proxy = get_random_proxy()
+
     chrome_driver_path = ChromeDriverManager().install()
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument("--headless")
+    chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
+    
+    #chrome_options.add_argument(f"--proxy-server={proxy}")
 
     driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
 
