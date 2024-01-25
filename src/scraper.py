@@ -3,7 +3,6 @@ import uuid
 import random
 import re
 from fake_useragent import UserAgent
-import requests
 
 def scrape_shallow_product_info(driver, search_keyword, page_number=1):
     url = f'https://www.kupujemprodajem.com/pretraga?keywords={search_keyword}&page={page_number}'
