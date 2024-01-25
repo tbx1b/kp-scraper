@@ -5,15 +5,6 @@ import re
 from fake_useragent import UserAgent
 import requests
 
-def get_random_user_agent():
-    ua = UserAgent()
-    return ua.random
-
-def get_random_proxy():
-    response = requests.get("http://pubproxy.com/api/proxy")
-    proxies = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
-    return random.choice(proxies)
-
 def scrape_shallow_product_info(driver, search_keyword, page_number=1):
     url = f'https://www.kupujemprodajem.com/pretraga?keywords={search_keyword}&page={page_number}'
 
