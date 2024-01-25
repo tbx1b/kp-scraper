@@ -17,7 +17,6 @@ def main():
     output = []
     pages_scraped = 0
 
-    bar = tqdm(total=pages, desc='Scraping')
 
     chrome_driver_path = ChromeDriverManager().install()
 
@@ -26,7 +25,10 @@ def main():
     chrome_options.add_argument(f"user-agent={get_random_user_agent()}")
     driver = webdriver.Chrome(service=ChromeService(chrome_driver_path), options=chrome_options)
 
+    bar = tqdm(total=pages, desc='Scraping')
+
     start_time = datetime.datetime.now()
+
     for i in range(0, pages):
         output.append(scrape_shallow_product_info(driver, keyword, i))
         pages_scraped = pages_scraped + 1
